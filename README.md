@@ -84,6 +84,20 @@ The ```results``` directory will have the following structure:
 The results for different RNN types will be logged in separate files.
 For instance, ```results/xor_event/lstm_64.csv``` will contain the results of the augmented LSTM with 64 hidden units on the event-based XOR task. The naming of the RNN models is the same as for the ```--model``` argument as described above.
 
+## ODE solver choice
+
+The following ODE solvers are available for running the ODE-RNNs:
+
+- ```euler```: Fixed-stepsize explicit Euler's method
+- ```heun```: Fixed-stepsize Heun's method
+- ```rk4```: Fixed-stepsize 4th order Runge-Kutta
+- ```dopri5```: Dormand and Prince adaptive stepsize solver
+
+Choosing a fixed-stepsize solver also requires specifying the number of ODE solver steps unfoldings per RNN step.
+It is recommended to use a fixed-stepsize solver, due to the much faster runtime.
+
+The Dormand and Prince adaptive stepsize solver uses the ODE solver implemented in the TensorFlow Probability package. This implementation does not support to specify batched solution times. As this feature is vital for irregularly sampled time-series, we had to implement a workaround to support it. Therefore, choosing this ODE solving method simulates more than necessary, which reduces the computational efficiency. 
+
 ## Citation
 
 ```bibtex

@@ -3,12 +3,23 @@ import numpy as np
 
 
 class CTRNNCell(tf.keras.layers.Layer):
-    def __init__(self, units, num_unfolds, method, tau=1, **kwargs):
-        self.methods = {
+    def __init__(self, units, method, num_unfolds=None, tau=1, **kwargs):
+        self.fixed_step_methods = {
             "euler": self.euler,
             "heun": self.heun,
             "rk4": self.rk4,
         }
+        allowed_methods = ["euler", "heun", "rk4", "dopri5"]
+        if not method in allowed_methods:
+            raise ValueError(
+                "Unknown ODE solver '{}', expected one of '{}'".format(
+                    method, allowed_methods
+                )
+            )
+        if method in self.fixed_step_methods.keys() and num_unfolds is None:
+            raise ValueError(
+                "Fixed-step ODE solver requires argument 'num_unfolds' to be specified!"
+            )
         self.units = units
         self.state_size = units
         self.num_unfolds = num_unfolds
@@ -38,7 +49,23 @@ class CTRNNCell(tf.keras.layers.Layer):
             initializer=tf.keras.initializers.Constant(1.0),
             name="scale",
         )
+        if self.method == "dopri5":
+            # Only load tfp packge if it is really needed
+            import tensorflow_probability as tfp
 
+            # We don't need the most precise solver to speed up training
+            self.solver = tfp.math.ode.DormandPrince(
+                rtol=0.01,
+                atol=1e-04,
+                first_step_size=0.01,
+                safety_factor=0.8,
+                min_step_size_factor=0.1,
+                max_step_size_factor=10.0,
+                max_num_steps=None,
+                make_adjoint_solver_fn=None,
+                validate_args=False,
+                name="dormand_prince",
+            )
         self.built = True
 
     def call(self, inputs, states):
@@ -48,11 +75,42 @@ class CTRNNCell(tf.keras.layers.Layer):
             elapsed = inputs[1]
             inputs = inputs[0]
 
-        delta_t = elapsed / self.num_unfolds
-        method = self.methods[self.method]
-        for i in range(self.num_unfolds):
-            hidden_state = method(inputs, hidden_state, delta_t)
+        if self.method == "dopri5":
+            # Only load tfp packge if it is really needed
+            import tensorflow_probability as tfp
+
+            if not type(elapsed) == float:
+                batch_dim = tf.shape(elapsed)[0]
+                elapsed = tf.reshape(elapsed, [batch_dim])
+
+                idx = tf.argsort(elapsed)
+                solution_times = tf.gather(elapsed, idx)
+            else:
+                solution_times = elapsed
+            hidden_state = states[0]
+            res = self.solver.solve(
+                ode_fn=self.dfdt_wrapped,
+                initial_time=0,
+                initial_state=hidden_state,
+                solution_times=solution_times,  # tfp.math.ode.ChosenBySolver(elapsed),
+                constants={"input": inputs},
+            )
+            if not type(elapsed) == float:
+                i2 = tf.stack([idx, tf.range(batch_dim)], axis=1)
+                hidden_state = tf.gather_nd(res.states, i2)
+            else:
+                hidden_state = res.states[-1]
+        else:
+            delta_t = elapsed / self.num_unfolds
+            method = self.fixed_step_methods[self.method]
+            for i in range(self.num_unfolds):
+                hidden_state = method(inputs, hidden_state, delta_t)
         return hidden_state, [hidden_state]
+
+    def dfdt_wrapped(self, t, y, **constants):
+        inputs = constants["input"]
+        hidden_state = y
+        return self.dfdt(inputs, hidden_state)
 
     def dfdt(self, inputs, hidden_state):
         h_in = tf.matmul(inputs, self.kernel)
