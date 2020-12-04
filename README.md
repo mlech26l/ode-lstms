@@ -1,6 +1,6 @@
 # Learning Long-Term Dependencies in Irregularly-Sampled Time Series
 
-This is the official code repository of the NeurIPS 2020 accepted paper *Learning Long-Term Dependencies in Irregularly-Sampled Time Series* [[arXiv link]](https://arxiv.org/pdf/2006.04418.pdf).
+This is the official code repository of the paper *Learning Long-Term Dependencies in Irregularly-Sampled Time Series* [[arXiv link]](https://arxiv.org/pdf/2006.04418.pdf).
 
 The principle idea of this paper is to combine ODE-RNNs with LSTM in a single architecture that 
 
@@ -101,10 +101,10 @@ The Dormand and Prince adaptive stepsize solver uses the ODE solver implemented 
 ## Citation
 
 ```bibtex
-@inproceedings{lechner2020longterm,
+@article{lechner2020longterm,
 	title={Learning Long-Term Dependencies in Irregularly-Sampled Time Series},
 	author={Lechner, Mathias and Hasani, Ramin},
-	booktitle={To appear in Conference on Neural Information Processing Systems (NeurIPS)},
+	journal={arXiv preprint arXiv:2006.04418},
 	year={2020}
 }
 ```
