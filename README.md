@@ -18,8 +18,8 @@ Efficient and flexible **PyTorch** implementation added.
 Supports adaptive step-size solvers through the [TorchDyn](https://github.com/DiffEqML/torchdyn) package, 
 as well as much faster but less precise custom implemented fixed-stepsize solvers.
 
-The file [torch_node_cell.py](https://github.com/mlech26l/ode-lstms/torch_node_cell.py) contains the implementation of the ODE-LSTM.
-The file [pt_trainer.py](https://github.com/mlech26l/ode-lstms/pt_trainer.py) uses [PyTorch-Lightning](https://github.com/PyTorchLightning/pytorch-lightning) to train a ODE-LSTM on some of the datasets of the paper.
+The file [torch_node_cell.py](https://github.com/mlech26l/ode-lstms/blob/master/torch_node_cell.py) contains the implementation of the ODE-LSTM.
+The file [pt_trainer.py](https://github.com/mlech26l/ode-lstms/blob/master/pt_trainer.py) uses [PyTorch-Lightning](https://github.com/PyTorchLightning/pytorch-lightning) to train a ODE-LSTM on some of the datasets of the paper.
 In particular, the PyTorch implementation give lightly better results than the TensorFlow implemenation.
 
 Here is a subset of the available solver types:
