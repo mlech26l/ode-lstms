@@ -28,6 +28,13 @@ Here is a subset of the available solver types:
 - ```fixed_heun``` Fixed-stepsize Heun's method solver
 - ```fixed_euler``` Fixed-stepsize explicit Euler method
 
+Example usage
+
+```bash
+python3 pt_trainer.py --dataset person --solver fixed_rk4 --size 128 --epochs 50
+```
+Trains a ODE-LSTM of 128 units on the person activity dataset for 50 epochs.
+
 **Why the fixed-stepsize solvers?**
 Similar to the issue of the Dormand-Prince solver implementation of the TensorFlow-probability package, 
 the adaptive-stepsize solvers of the  [TorchDyn](https://github.com/DiffEqML/torchdyn) and the [torchdiffeq](https://github.com/rtqichen/torchdiffeq)
