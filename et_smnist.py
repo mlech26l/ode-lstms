@@ -1,5 +1,5 @@
-import numpy as np
-import pandas as pd
+# Copyright 2021 The ODE-LSTM Authors. All Rights Reserved.
+
 import os
 import tensorflow as tf
 from node_cell import (
@@ -14,122 +14,8 @@ from node_cell import (
     GRUODE,
     HawkLSTMCell,
 )
-from tqdm import tqdm
 import argparse
-
-
-class ETSMnistData:
-    def __init__(self, time_major, pad_size=256):
-        self.threshold = 128
-        self.pad_size = pad_size
-
-        if not self.load_from_cache():
-            self.create_dataset()
-
-        self.train_elapsed /= self.pad_size
-        self.test_elapsed /= self.pad_size
-
-    def load_from_cache(self):
-        if os.path.isfile("dataset/test_mask.npy"):
-            self.train_events = np.load("dataset/train_events.npy")
-            self.train_elapsed = np.load("dataset/train_elapsed.npy")
-            self.train_mask = np.load("dataset/train_mask.npy")
-            self.train_y = np.load("dataset/train_y.npy")
-
-            self.test_events = np.load("dataset/test_events.npy")
-            self.test_elapsed = np.load("dataset/test_elapsed.npy")
-            self.test_mask = np.load("dataset/test_mask.npy")
-            self.test_y = np.load("dataset/test_y.npy")
-
-            print("train_events.shape: ", str(self.train_events.shape))
-            print("train_elapsed.shape: ", str(self.train_elapsed.shape))
-            print("train_mask.shape: ", str(self.train_mask.shape))
-            print("train_y.shape: ", str(self.train_y.shape))
-
-            print("test_events.shape: ", str(self.test_events.shape))
-            print("test_elapsed.shape: ", str(self.test_elapsed.shape))
-            print("test_mask.shape: ", str(self.test_mask.shape))
-            print("test_y.shape: ", str(self.test_y.shape))
-            return True
-        return False
-
-    def transform_sample(self, x):
-        x = x.flatten()
-
-        events = np.zeros([self.pad_size, 1], dtype=np.float32)
-        elapsed = np.zeros([self.pad_size, 1], dtype=np.float32)
-        mask = np.zeros([self.pad_size], dtype=np.bool)
-
-        last_char = -1
-        write_index = 0
-        elapsed_counter = 0
-        for i in range(x.shape[0]):
-            elapsed_counter += 1
-            char = int(x[i] > self.threshold)
-            if last_char != char:
-                events[write_index] = char
-                elapsed[write_index] = elapsed_counter
-                mask[write_index] = True
-                write_index += 1
-                if write_index >= self.pad_size:
-                    # Enough 1s in this sample, abort
-                    self._abort_counter += 1
-                    break
-                elapsed_counter = 0
-            last_char = char
-        self._all_lenghts.append(write_index)
-        return events, elapsed, mask
-
-    def transform_array(self, x):
-        events_list = []
-        elapsed_list = []
-        mask_list = []
-
-        for i in tqdm(range(x.shape[0])):
-            events, elapsed, mask = self.transform_sample(x[i])
-            events_list.append(events)
-            elapsed_list.append(elapsed)
-            mask_list.append(mask)
-
-        return (
-            np.stack(events_list, axis=0),
-            np.stack(elapsed_list, axis=0),
-            np.stack(mask_list, axis=0),
-        )
-
-    def create_dataset(self):
-        (train_x, train_y), (test_x, test_y) = tf.keras.datasets.mnist.load_data()
-
-        self._all_lenghts = []
-        self._abort_counter = 0
-
-        train_x = train_x.reshape([-1, 28 * 28])
-        test_x = test_x.reshape([-1, 28 * 28])
-
-        self.train_y = train_y
-        self.test_y = test_y
-
-        print("Transforming training samples")
-        self.train_events, self.train_elapsed, self.train_mask = self.transform_array(
-            train_x
-        )
-        print("Transforming test samples")
-        self.test_events, self.test_elapsed, self.test_mask = self.transform_array(
-            test_x
-        )
-
-        print("Average time-series length: {:0.2f}".format(np.mean(self._all_lenghts)))
-        print("Abort counter: ", str(self._abort_counter))
-        os.makedirs("dataset", exist_ok=True)
-        np.save("dataset/train_events.npy", self.train_events)
-        np.save("dataset/train_elapsed.npy", self.train_elapsed)
-        np.save("dataset/train_mask.npy", self.train_mask)
-        np.save("dataset/train_y.npy", self.train_y)
-
-        np.save("dataset/test_events.npy", self.test_events)
-        np.save("dataset/test_elapsed.npy", self.test_elapsed)
-        np.save("dataset/test_mask.npy", self.test_mask)
-        np.save("dataset/test_y.npy", self.test_y)
+from irregular_sampled_datasets import ETSMnistData
 
 
 parser = argparse.ArgumentParser()

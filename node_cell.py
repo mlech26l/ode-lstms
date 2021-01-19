@@ -1,3 +1,5 @@
+# Copyright 2021 The ODE-LSTM Authors. All Rights Reserved.
+
 import tensorflow as tf
 import numpy as np
 
@@ -262,7 +264,9 @@ class ODELSTM(tf.keras.layers.Layer):
         new_cell = cell_state * forget_gate + input_activation * input_gate
         ode_input = tf.nn.tanh(new_cell) * output_gate
 
+        # Implementation choice on how to parametrize ODE component
         ode_output, new_ode_state = self.ctrnn.call([ode_input, elapsed], [ode_state])
+        # ode_output, new_ode_state = self.ctrnn.call([ode_input, elapsed], [ode_input])
 
         return ode_output, [new_cell, new_ode_state[0]]
 
@@ -686,4 +690,3 @@ class HawkLSTMCell(tf.keras.layers.Layer):
         output_state = tf.nn.tanh(c_t) * output_gate
 
         return output_state, [new_c, new_c_bar, output_state]
-

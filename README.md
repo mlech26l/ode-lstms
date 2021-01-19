@@ -11,11 +11,38 @@ Our proposed ODE-LSTM achieves this by post-processing the output-state of the L
 
 ![alt](misc/state_table.png)
 
+## Update January 2021 - PyTorch support added
+
+Efficient and flexible **PyTorch** implementation added. 
+
+Supports adaptive step-size solvers through the [TorchDyn](https://github.com/DiffEqML/torchdyn) package, 
+as well as much faster but less precise custom implemented fixed-stepsize solvers.
+
+The file [torch_node_cell.py](https://github.com/mlech26l/ode-lstms/torch_node_cell.py) contains the implementation of the ODE-LSTM.
+The file [pt_trainer.py](https://github.com/mlech26l/ode-lstms/pt_trainer.py) uses [PyTorch-Lightning](https://github.com/PyTorchLightning/pytorch-lightning) to train a ODE-LSTM on some of the datasets of the paper.
+In particular, the PyTorch implementation give lightly better results than the TensorFlow implemenation.
+
+Here is a subset of the available solver types:
+- ```dopri5``` Dormand-Prince adaptive stepsize solver using [TorchDyn](https://github.com/DiffEqML/torchdyn) package, 
+- ```fixed_rk4``` Fixed-stepsize 4-th order Runge-Kutta 
+- ```fixed_heun``` Fixed-stepsize Heun's method solver
+- ```fixed_euler``` Fixed-stepsize explicit Euler method
+
+**Why the fixed-stepsize solvers?**
+Similar to the issue of the Dormand-Prince solver implementation of the TensorFlow-probability package, 
+the adaptive-stepsize solvers of the  [TorchDyn](https://github.com/DiffEqML/torchdyn) and the [torchdiffeq](https://github.com/rtqichen/torchdiffeq)
+only have limited support for requesting a batched solution time, i.e., each item of a batch may require a different solution time.
+
+We implemented a workaround that simulates an entire batch at the union of the solution times in the batch, which may results in unnecessary computations.
+The custom implementation of the fixed-stepsize solvers are implemented with full support of  batched solution times, thus are much faster (at the cost of lower numerical precision).
+
+
 ## Requirements
 
 **Packages**
 - Python 3.5 or newer
 - TensorFlow 2.0 or newer
+- (torch 1.7.1, torchdiffeq 0.1.1, torchdyn 0.2.2.1, torchsde 0.2.4)
 
 Tested with python3.6/python3.5 and TensorFlow 2.1 on Ubuntu 18.04 and Ubuntu 16.04
 
