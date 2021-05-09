@@ -2,13 +2,6 @@
 
 This is the official code repository of the paper *Learning Long-Term Dependencies in Irregularly-Sampled Time Series* [[arXiv link]](https://arxiv.org/pdf/2006.04418.pdf).
 
-The principle idea of this paper is to combine ODE-RNNs with LSTM in a single architecture that 
-
-- has the supreme modeling power of ordinary differential equations for fitting irregularly-sampled time series, and
-- the capability of the LSTM architecture for learning long-term dependencies in the data.
-
-Our proposed ODE-LSTM achieves this by post-processing the output-state of the LSTM's state-pair by a learnable ODE.  The LSTM's memory-state stays untouched to allow a near-constant backpropagation of the error signal. 
-
 ![alt](misc/state_table.png)
 
 ## Update January 2021 - PyTorch support added
