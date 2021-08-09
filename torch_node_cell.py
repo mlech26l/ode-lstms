@@ -80,7 +80,7 @@ class ODELSTM(nn.Module):
         hidden_size,
         out_feature,
         return_sequences=True,
-        solver_type="odpri5",
+        solver_type="dopri5",
     ):
         super(ODELSTM, self).__init__()
         self.in_features = in_features
